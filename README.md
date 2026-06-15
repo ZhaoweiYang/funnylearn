@@ -21,6 +21,7 @@
 - ❓ **趣味小测验** —— 点一下选项，即时对错反馈 + 彩屑庆祝
 - 🎯 **配对小游戏** —— 把单词和图标连起来
 - 🎬 **动画场景** —— 用一小段 CSS 动画把 `blossom`(绽放) / `soar`(翱翔) 直接「演」给你看
+- 🎥 **影视台词** —— 真实电影台词（《教父》《阿甘正传》《肖申克的救赎》…）+ **YouGlish** 真实视频片段，看这个词到底怎么用
 
 ## 🕹️ 交互特点（TikTok 式体验）
 
@@ -79,11 +80,25 @@ npm run preview  # 本地预览生产构建
 
 新加一个类型？三步：在 `src/types.ts` 里加一个 `XxxCard` 接口并并入 `Card` 联合类型 → 写一个 `src/components/cards/XxxCard.tsx` → 在 `src/components/Reel.tsx` 的 `switch` 里挂上。TypeScript 会提示你哪里漏了。
 
+## 📚 用 ECDICT 批量扩充词库
+
+不想一个个手写？用脚本从开源词典 [**ECDICT**](https://github.com/skywind3000/ECDICT)（MIT，约 76 万词条）按「考纲 + 词频」自动导入高频词：
+
+```bash
+npm run import:ecdict                 # 默认：下载 ecdict.csv，取 CET4 前 60 个高频词
+LIMIT=100 TAG=cet6 npm run import:ecdict   # 也可改成 CET6 / 取更多
+```
+
+它会生成 `src/data/cet4.ts`（一批 `movie` 影视台词卡），自动追加到精选卡片之后、并去重。每个导入词都带 **YouGlish** 入口，点开就能看它在真实影视/真人视频里怎么用。
+
+> 🎥 **关于影视画面的版权**：电影视频/截图本身受版权保护，本站**不存储任何视频**，而是通过 YouGlish 内嵌 YouTube 播放（版权由 YouTube/YouGlish 承担），这是合规做法。
+
 ## 🗂️ 项目结构
 
 ```
 src/
-├─ data/words.ts          # 👈 内容库：所有单词梗都在这里
+├─ data/words.ts          # 👈 内容库：精选单词梗 + 组装最终 feed
+├─ data/cet4.ts           # 由 import:ecdict 生成的 CET4 高频词（勿手改）
 ├─ types.ts               # 卡片数据模型（各种 type）
 ├─ lib/themes.ts          # 配色主题
 ├─ hooks/
@@ -95,8 +110,10 @@ src/
 │  ├─ Reel.tsx            # 单条全屏「短视频位」+ 背景 + 操作栏
 │  ├─ ActionRail.tsx      # 右侧 点赞/收藏/发音/分享
 │  ├─ TopBar.tsx          # 顶部品牌 + 进度 + 战绩
-│  ├─ cards/              # 各种卡片：Mnemonic / Etymology / Quiz / Match / Scene / Intro / Outro
-│  └─ ui/                 # WordTitle / ExampleBlock / Confetti / SceneStage / Tags
+│  ├─ cards/              # 各种卡片：Mnemonic / Etymology / Quiz / Match / Scene / Movie / Intro / Outro
+│  └─ ui/                 # WordTitle / ExampleBlock / Confetti / SceneStage / Tags / YouglishPlayer
+└─ ...
+（仓库根）scripts/import-ecdict.mjs  # 从 ECDICT 按考纲+词频导入生成 cet4.ts
 ├─ App.tsx                # 注入全局状态
 └─ main.tsx               # 入口
 ```

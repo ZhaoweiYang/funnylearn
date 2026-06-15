@@ -1,4 +1,6 @@
 import type { Card } from '../types'
+import { isWordCard } from '../types'
+import { CET4_CARDS } from './cet4'
 
 // ---------------------------------------------------------------------------
 // 内容库：每条就是 feed 里的一次「上滑」。
@@ -7,14 +9,11 @@ import type { Card } from '../types'
 // 排列，让 feed 像真实的短视频流一样有节奏感。
 // ---------------------------------------------------------------------------
 
-export const CARDS: Card[] = [
-  // 0 ── 开场引导
-  {
-    id: 'intro',
-    type: 'intro',
-    accent: 'grape',
-  },
+const INTRO: Card = { id: 'intro', type: 'intro', accent: 'grape' }
+const OUTRO: Card = { id: 'outro', type: 'outro', accent: 'grape' }
 
+// 精心编排的「梗」卡片：段子 / 词根 / 测验 / 游戏 / 动画 / 影视台词
+const CURATED: Card[] = [
   // 1 ── abandon（自嘲式开场梗）
   {
     id: 'abandon',
@@ -353,10 +352,75 @@ export const CARDS: Card[] = [
     tags: ['动画', '一看就懂'],
   },
 
-  // 19 ── 结尾
+  // ── 精选电影台词卡（配 YouGlish 看真实用法）──
   {
-    id: 'outro',
-    type: 'outro',
-    accent: 'grape',
+    id: 'force',
+    type: 'movie',
+    accent: 'ocean',
+    word: 'force',
+    phonetic: '/fɔːrs/',
+    pos: 'n. & v.',
+    meaning: '力量；原力；迫使',
+    quote: {
+      en: 'May the Force be with you.',
+      zh: '愿原力与你同在。',
+      from: '星球大战 Star Wars',
+    },
+    tags: ['影视台词', '名场面'],
+  },
+  {
+    id: 'offer',
+    type: 'movie',
+    accent: 'gold',
+    word: 'offer',
+    phonetic: '/ˈɔːfər/',
+    pos: 'n. & v.',
+    meaning: '提议；报价；提供',
+    quote: {
+      en: "I'm going to make him an offer he can't refuse.",
+      zh: '我会给他一个无法拒绝的条件。',
+      from: '教父 The Godfather',
+    },
+    tags: ['影视台词', '名场面'],
+  },
+  {
+    id: 'hope',
+    type: 'movie',
+    accent: 'forest',
+    word: 'hope',
+    phonetic: '/hoʊp/',
+    pos: 'n. & v.',
+    meaning: '希望',
+    quote: {
+      en: 'Hope is a good thing, maybe the best of things, and no good thing ever dies.',
+      zh: '希望是好事，也许是世间最好的；而美好的事物，永不消逝。',
+      from: '肖申克的救赎 The Shawshank Redemption',
+    },
+    tags: ['影视台词', '治愈'],
+  },
+  {
+    id: 'chocolate',
+    type: 'movie',
+    accent: 'candy',
+    word: 'chocolate',
+    phonetic: '/ˈtʃɔːklət/',
+    pos: 'n.',
+    meaning: '巧克力',
+    quote: {
+      en: "Life was like a box of chocolates. You never know what you're gonna get.",
+      zh: '生活就像一盒巧克力，你永远不知道下一颗是什么味道。',
+      from: '阿甘正传 Forrest Gump',
+    },
+    tags: ['影视台词', '名场面'],
   },
 ]
+
+// 从 ECDICT 批量导入的 CET4 高频词（自动去掉与上面精选重复的），追加到精选之后
+const curatedWords = new Set(
+  CURATED.filter(isWordCard).map((c) => c.word.toLowerCase()),
+)
+const cet4 = CET4_CARDS.filter(
+  (c) => isWordCard(c) && !curatedWords.has(c.word.toLowerCase()),
+)
+
+export const CARDS: Card[] = [INTRO, ...CURATED, ...cet4, OUTRO]

@@ -9,6 +9,7 @@ import { EtymologyCard } from './cards/EtymologyCard'
 import { QuizCard } from './cards/QuizCard'
 import { MatchCard } from './cards/MatchCard'
 import { SceneCard } from './cards/SceneCard'
+import { MovieCard } from './cards/MovieCard'
 
 /** 一个全屏、可吸附的「短视频位」，承载一张卡片 */
 export function Reel({
@@ -69,5 +70,7 @@ function CardBody({
       return <MatchCard card={card} active={active} />
     case 'scene':
       return <SceneCard card={card} active={active} />
+    case 'movie':
+      return <MovieCard card={card} active={active} />
   }
 }

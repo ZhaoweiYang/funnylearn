@@ -102,6 +102,16 @@ export interface SceneCard extends WordCardCommon {
   example: Example
 }
 
+/**
+ * 影视台词卡：用一句真实电影台词 + YouGlish 真实视频片段来讲这个词的用法。
+ * 没有 quote 时(如从 ECDICT 批量导入的高频词)就只靠 YouGlish 展示真实语境。
+ */
+export interface MovieCard extends WordCardCommon {
+  type: 'movie'
+  /** 可选的精选电影台词 */
+  quote?: { en: string; zh: string; from: string }
+}
+
 export type Card =
   | IntroCard
   | OutroCard
@@ -110,6 +120,7 @@ export type Card =
   | QuizCard
   | MatchCard
   | SceneCard
+  | MovieCard
 
 /** 带单词的卡片（intro / outro 之外）—— 用于点赞、收藏、统计 */
 export type WordCard = Exclude<Card, IntroCard | OutroCard>
