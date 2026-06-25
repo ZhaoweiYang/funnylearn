@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [claude/adoring-goodall-vcgfdn]
+    branches: [claude/adoring-goodall-vcgfdn, claude/nifty-goldberg-338auo]
   workflow_dispatch:
 
 # 允许工作流读取代码、写入并部署 Pages
