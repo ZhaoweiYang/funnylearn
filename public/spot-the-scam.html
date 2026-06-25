@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)" />
+<meta name="description" content="Spot the Scam — an iOS-style phishing-awareness lesson. Learn to recognize fake 'Apple Pay reward' pop-ups before they trick you." />
+<title>Spot the Scam · Phishing 101</title>
+<style>
+  :root {
+    --blue: #007aff;
+    --red: #ff3b30;
+    --green: #34c759;
+    --orange: #ff9500;
+    --yellow: #ffcc00;
+
+    /* Light theme (default) */
+    --bg: #f2f2f7;
+    --bg-elevated: #ffffff;
+    --card: #ffffff;
+    --label: #000000;
+    --label-secondary: rgba(60, 60, 67, 0.6);
+    --label-tertiary: rgba(60, 60, 67, 0.3);
+    --separator: rgba(60, 60, 67, 0.18);
+    --fill: rgba(118, 118, 128, 0.12);
+    --fill-strong: rgba(118, 118, 128, 0.2);
+    --nav-blur: rgba(249, 249, 249, 0.8);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.06);
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #000000;
+    --bg-elevated: #1c1c1e;
+    --card: #1c1c1e;
+    --label: #ffffff;
+    --label-secondary: rgba(235, 235, 245, 0.6);
+    --label-tertiary: rgba(235, 235, 245, 0.3);
+    --separator: rgba(84, 84, 88, 0.65);
+    --fill: rgba(118, 118, 128, 0.24);
+    --fill-strong: rgba(118, 118, 128, 0.36);
+    --nav-blur: rgba(30, 30, 32, 0.7);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 8px 28px rgba(0, 0, 0, 0.5);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--label);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+      "Helvetica Neue", "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  body {
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 0 0 64px;
+    min-height: 100vh;
+  }
+
+  /* ---------- Navigation bar ---------- */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    background: var(--nav-blur);
+    border-bottom: 0.5px solid var(--separator);
+    padding: calc(env(safe-area-inset-top) + 8px) 16px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .nav-title { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
+
+  /* iOS segmented control */
+  .segmented {
+    display: inline-flex;
+    background: var(--fill);
+    border-radius: 9px;
+    padding: 2px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .segmented button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--label);
+    padding: 5px 12px;
+    border-radius: 7px;
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .segmented button[aria-pressed="true"] {
+    background: var(--bg-elevated);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  }
+
+  /* ---------- Headers ---------- */
+  .hero { padding: 18px 20px 4px; }
+  .eyebrow {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--red);
+  }
+  .large-title {
+    font-size: 34px;
+    line-height: 1.08;
+    font-weight: 700;
+    letter-spacing: -0.022em;
+    margin: 4px 0 8px;
+  }
+  .lede {
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--label-secondary);
+    margin: 0;
+  }
+
+  .section-header {
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--label-secondary);
+    padding: 28px 20px 8px;
+  }
+
+  /* ---------- The phishing specimen ---------- */
+  .specimen-wrap { padding: 16px 20px 4px; }
+  .specimen {
+    position: relative;
+    background: #000;
+    border-radius: 26px;
+    padding: 30px 22px 26px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .specimen::before {
+    /* faux iOS wallpaper glow so it reads as a phone screen */
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(120% 80% at 50% -10%, rgba(255, 59, 48, 0.18), transparent 60%),
+      radial-gradient(120% 80% at 50% 120%, rgba(88, 86, 214, 0.16), transparent 60%);
+    z-index: -1;
+  }
+  .specimen-badge {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 204, 0, 0.16);
+    color: var(--yellow);
+    border: 1px solid rgba(255, 204, 0, 0.35);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    border-radius: 999px;
+    backdrop-filter: blur(8px);
+  }
+
+  .fake-banner {
+    margin-top: 30px;
+    background: #d70015;
+    color: #fff;
+    text-align: center;
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.3;
+    padding: 18px 16px;
+    border-radius: 14px;
+  }
+  .fake-offer {
+    text-align: center;
+    color: #f2f2f7;
+    margin: 30px 0 8px;
+    font-size: 19px;
+    line-height: 1.35;
+  }
+  .fake-offer .amount { font-weight: 700; }
+  .fake-cta {
+    display: block;
+    width: 84%;
+    margin: 26px auto 14px;
+    background: #5e5ce6;
+    color: #fff;
+    border: none;
+    font: inherit;
+    font-size: 17px;
+    font-weight: 600;
+    padding: 15px;
+    border-radius: 13px;
+    cursor: not-allowed;
+  }
+  .fake-dismiss {
+    display: block;
+    width: 100%;
+    text-align: center;
+    color: #ebebf5;
+    font-size: 16px;
+    background: none;
+    border: none;
+    font: inherit;
+    padding: 6px;
+    cursor: pointer;
+  }
+
+  /* Red-flag hotspots overlaid on the specimen */
+  .flag {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: var(--yellow);
+    color: #1a1a00;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.25);
+    z-index: 3;
+    transition: transform 0.18s ease, background 0.2s ease, box-shadow 0.2s ease;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .flag:hover { transform: scale(1.12); }
+  .flag.found {
+    background: var(--green);
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(52, 199, 89, 0.28);
+    animation: none;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.25); }
+    50% { box-shadow: 0 0 0 9px rgba(255, 204, 0, 0.04); }
+  }
+  .flag[data-flag="1"] { top: 56px; right: 6px; }
+  .flag[data-flag="2"] { top: 96px; left: 4px; }
+  .flag[data-flag="3"] { top: 178px; right: 28px; }
+  .flag[data-flag="4"] { bottom: 64px; right: 14px; }
+
+  /* Progress / score */
+  .score {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 18px 20px 0;
+    padding: 14px 16px;
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+  }
+  .score-text { font-size: 15px; font-weight: 500; }
+  .score-text b { color: var(--green); }
+  .score-track {
+    flex: 1;
+    height: 8px;
+    margin-left: 14px;
+    background: var(--fill-strong);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .score-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--green), #30d158);
+    border-radius: 999px;
+    transition: width 0.4s cubic-bezier(0.3, 0.8, 0.3, 1);
+  }
+  .score-done {
+    margin: 12px 20px 0;
+    padding: 14px 16px;
+    background: rgba(52, 199, 89, 0.12);
+    border: 1px solid rgba(52, 199, 89, 0.3);
+    color: var(--green);
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    display: none;
+  }
+  .score-done.show { display: block; animation: rise 0.4s ease; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* ---------- Grouped inset list (iOS Settings style) ---------- */
+  .list {
+    margin: 8px 20px 0;
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .row {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 14px 16px;
+    position: relative;
+    transition: background 0.25s ease;
+  }
+  .row + .row::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 52px;
+    right: 0;
+    height: 0.5px;
+    background: var(--separator);
+  }
+  .row.lit { background: rgba(255, 204, 0, 0.14); }
+  .row-icon {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+    line-height: 1;
+    color: #fff;
+  }
+  .row-icon.emoji {
+    background: var(--fill);
+    font-size: 17px;
+  }
+  .row-body { flex: 1; min-width: 0; }
+  .row-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .row-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--label-secondary);
+    background: var(--fill);
+    border-radius: 6px;
+    padding: 1px 6px;
+  }
+  .row-desc {
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--label-secondary);
+    margin-top: 3px;
+  }
+  .row-quote {
+    display: inline;
+    color: var(--label);
+    background: rgba(255, 59, 48, 0.12);
+    border-radius: 4px;
+    padding: 0 4px;
+    font-style: italic;
+  }
+
+  /* ---------- Verify / checklist ---------- */
+  .check-row { align-items: center; }
+  .check-row .row-icon { background: var(--green); }
+  .x-row .row-icon { background: var(--red); }
+
+  .callout {
+    margin: 8px 20px 0;
+    padding: 16px;
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--label-secondary);
+  }
+  .callout strong { color: var(--label); }
+
+  .footer {
+    text-align: center;
+    color: var(--label-tertiary);
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 36px 32px 0;
+  }
+  .footer a { color: var(--blue); text-decoration: none; }
+
+  /* Toast that appears when you tap a flag */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(env(safe-area-inset-bottom) + 22px);
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(40, 40, 42, 0.92);
+    color: #fff;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 12px 18px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    max-width: 88%;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-title">Phishing 101</span>
+    <div class="segmented" role="group" aria-label="Appearance">
+      <button id="seg-light" aria-pressed="false">Light</button>
+      <button id="seg-dark" aria-pressed="true">Dark</button>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <p class="eyebrow">Security · Awareness</p>
+    <h1 class="large-title">Spot the Scam</h1>
+    <p class="lede">
+      Below is a real-world scam pop-up, rebuilt as a harmless specimen. It pretends
+      to be Apple and dangles a $10 reward. Tap the yellow markers to uncover why every
+      part of it is designed to trick you.
+    </p>
+  </header>
+
+  <!-- The fake pop-up (non-functional, clearly labelled) -->
+  <section class="specimen-wrap" aria-label="Scam pop-up specimen">
+    <div class="specimen">
+      <span class="specimen-badge">⚠ FAKE · TRAINING SAMPLE</span>
+
+      <div class="fake-banner">
+        Apple Pay activity detected.<br />This may affect your access to the App Store.
+      </div>
+
+      <p class="fake-offer">
+        Set up Apple Wallet now<br />and receive a <span class="amount">$10 reward</span>
+      </p>
+
+      <button class="fake-cta" type="button" disabled>Set Up &amp; Claim</button>
+      <button class="fake-dismiss" type="button">Dismiss</button>
+
+      <!-- Red-flag hotspots -->
+      <button class="flag" data-flag="1" aria-label="Red flag 1: brand impersonation">1</button>
+      <button class="flag" data-flag="2" aria-label="Red flag 2: fear and false urgency">2</button>
+      <button class="flag" data-flag="3" aria-label="Red flag 3: too-good-to-be-true reward">3</button>
+      <button class="flag" data-flag="4" aria-label="Red flag 4: pressure to act now">4</button>
+    </div>
+  </section>
+
+  <div class="score">
+    <span class="score-text">Red flags found: <b id="score-count">0</b> / 4</span>
+    <div class="score-track"><div class="score-fill" id="score-fill"></div></div>
+  </div>
+  <div class="score-done" id="score-done">🎉 Nice — you spotted every trick. You're scam-savvy.</div>
+
+  <!-- Breakdown -->
+  <p class="section-header">Why it's a scam</p>
+  <div class="list" id="flag-list">
+    <div class="row" data-row="1">
+      <div class="row-icon emoji">🎭</div>
+      <div class="row-body">
+        <div class="row-title"><span class="row-num">FLAG 1</span> Brand impersonation</div>
+        <div class="row-desc">
+          It borrows trusted names — <span class="row-quote">Apple Pay</span>,
+          <span class="row-quote">App Store</span>, <span class="row-quote">Wallet</span> —
+          to look official. Apple never sends reward pop-ups through random websites or ads.
+        </div>
+      </div>
+    </div>
+    <div class="row" data-row="2">
+      <div class="row-icon emoji">⚠️</div>
+      <div class="row-body">
+        <div class="row-title"><span class="row-num">FLAG 2</span> Fear &amp; false urgency</div>
+        <div class="row-desc">
+          <span class="row-quote">This may affect your access to the App Store</span> is meant to
+          scare you. The claim is meaningless — using Apple Pay doesn't threaten the App Store.
+          Panic makes people click before they think.
+        </div>
+      </div>
+    </div>
+    <div class="row" data-row="3">
+      <div class="row-icon emoji">💵</div>
+      <div class="row-body">
+        <div class="row-title"><span class="row-num">FLAG 3</span> A reward that's too good to be true</div>
+        <div class="row-desc">
+          <span class="row-quote">$10 reward</span> is the bait. Free money for "setting up a wallet"
+          is exactly the hook scammers use to make you enter card or login details.
+        </div>
+      </div>
+    </div>
+    <div class="row" data-row="4">
+      <div class="row-icon emoji">⏱️</div>
+      <div class="row-body">
+        <div class="row-title"><span class="row-num">FLAG 4</span> Pressure to act now</div>
+        <div class="row-desc">
+          One glowing <span class="row-quote">Set Up &amp; Claim</span> button, and a tiny
+          <span class="row-quote">Dismiss</span>. The design funnels you toward a single action and
+          discourages stopping to verify.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How to protect yourself -->
+  <p class="section-header">How to protect yourself</p>
+  <div class="list">
+    <div class="row check-row">
+      <div class="row-icon">✓</div>
+      <div class="row-body">
+        <div class="row-title">Stop and breathe</div>
+        <div class="row-desc">Urgency and "free money" are red flags by themselves. Real warnings don't rush you.</div>
+      </div>
+    </div>
+    <div class="row check-row">
+      <div class="row-icon">✓</div>
+      <div class="row-body">
+        <div class="row-title">Go to the source directly</div>
+        <div class="row-desc">Open Settings or the official app yourself. Never act through a link or pop-up that found you.</div>
+      </div>
+    </div>
+    <div class="row check-row">
+      <div class="row-icon">✓</div>
+      <div class="row-body">
+        <div class="row-title">Check the address bar</div>
+        <div class="row-desc">A page claiming to be Apple but hosted on an unfamiliar domain is fake. Apple uses apple.com.</div>
+      </div>
+    </div>
+    <div class="row check-row">
+      <div class="row-icon">✓</div>
+      <div class="row-body">
+        <div class="row-title">Never enter card or password to "claim" a reward</div>
+        <div class="row-desc">Legitimate rewards don't require your password or full card number on a surprise page.</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="section-header">What Apple actually does</p>
+  <div class="list">
+    <div class="row x-row">
+      <div class="row-icon">✕</div>
+      <div class="row-body">
+        <div class="row-title">Never asks for your password in a pop-up</div>
+        <div class="row-desc">System prompts appear inside iOS, not on a web page styled to look like one.</div>
+      </div>
+    </div>
+    <div class="row x-row">
+      <div class="row-icon">✕</div>
+      <div class="row-body">
+        <div class="row-title">Never offers cash to "set up Wallet"</div>
+        <div class="row-desc">There is no $10 bonus for enabling Apple Pay. That offer is invented to bait you.</div>
+      </div>
+    </div>
+    <div class="row x-row">
+      <div class="row-icon">✕</div>
+      <div class="row-body">
+        <div class="row-title">Never threatens your App Store access this way</div>
+        <div class="row-desc">Account notices arrive in Settings, in verified emails, or via Apple's official support.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Found a page like this?</strong> Don't tap anything — close the tab. On iPhone you can
+    report it in Safari, and you can forward scam emails or texts to Apple at <strong>reportphishing@apple.com</strong>.
+    When in doubt, contact the company through their official website, not the message.
+  </div>
+
+  <p class="footer">
+    Built as a phishing-awareness demo. The pop-up shown is a non-functional reproduction —
+    it collects nothing and goes nowhere. Stay sharp out there.
+  </p>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var segLight = document.getElementById('seg-light');
+      var segDark = document.getElementById('seg-dark');
+
+      function setTheme(theme) {
+        root.setAttribute('data-theme', theme);
+        var dark = theme === 'dark';
+        segDark.setAttribute('aria-pressed', String(dark));
+        segLight.setAttribute('aria-pressed', String(!dark));
+        try { localStorage.setItem('scam-theme', theme); } catch (e) {}
+      }
+      // Initial theme: saved → system → dark fallback
+      var saved = null;
+      try { saved = localStorage.getItem('scam-theme'); } catch (e) {}
+      if (saved) {
+        setTheme(saved);
+      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+        setTheme('light');
+      } else {
+        setTheme('dark');
+      }
+      segLight.addEventListener('click', function () { setTheme('light'); });
+      segDark.addEventListener('click', function () { setTheme('dark'); });
+
+      // Red-flag interaction
+      var FLAG_MESSAGES = {
+        '1': 'Flag 1 — Brand impersonation: it fakes Apple to earn your trust.',
+        '2': "Flag 2 — Scare tactic: a meaningless threat to make you panic.",
+        '3': 'Flag 3 — Fake reward: "$10" is bait to harvest your details.',
+        '4': 'Flag 4 — Pressure: one big button funnels you into acting fast.'
+      };
+      var found = {};
+      var count = 0;
+      var flags = document.querySelectorAll('.flag');
+      var scoreCount = document.getElementById('score-count');
+      var scoreFill = document.getElementById('score-fill');
+      var scoreDone = document.getElementById('score-done');
+      var toast = document.getElementById('toast');
+      var toastTimer = null;
+
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+      }
+
+      flags.forEach(function (flag) {
+        flag.addEventListener('click', function () {
+          var id = flag.getAttribute('data-flag');
+          var row = document.querySelector('.row[data-row="' + id + '"]');
+
+          if (!found[id]) {
+            found[id] = true;
+            count++;
+            flag.classList.add('found');
+            flag.textContent = '✓';
+            scoreCount.textContent = String(count);
+            scoreFill.style.width = (count / 4 * 100) + '%';
+            if (count === 4) scoreDone.classList.add('show');
+          }
+          showToast(FLAG_MESSAGES[id]);
+
+          if (row) {
+            row.classList.add('lit');
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(function () { row.classList.remove('lit'); }, 1600);
+          }
+        });
+      });
+
+      // Dismiss on the fake pop-up just praises the user — never "claims" anything
+      var dismiss = document.querySelector('.fake-dismiss');
+      if (dismiss) {
+        dismiss.addEventListener('click', function () {
+          showToast('✅ Good call — closing a suspicious pop-up is exactly right.');
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
